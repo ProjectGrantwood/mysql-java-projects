@@ -17,7 +17,7 @@ public class DbConnection {
 		String url = String.format("jdbc:mysql://%s:%d/%s?user=%s&password=%s&useSSL=false", HOST, PORT, SCHEMA, USER, PASSWORD);
 		try {
 			Connection conn = DriverManager.getConnection(url);
-			System.out.println("Connected to schema " + SCHEMA + " with url + " url);
+			System.out.println("Connected to schema " + SCHEMA + " with url " + url);
 			return conn;
 		} catch (SQLException e) {
 			throw new DbException("Unable to get connection with url " + url);
