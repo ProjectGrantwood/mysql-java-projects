@@ -22,14 +22,28 @@ public class ProjectsApp {
 	
 	
 	
+	// -------------------------------------------------------------------------
 	// FIELDS:
+	// -------------------------------------------------------------------------
 	
-	
+	/**
+	 * This <code>ProjectService</code> instance is used throughout the class to
+	 * access the service layer of the application.
+	 * 
+	 */
 	
 	private ProjectService projectService = new ProjectService();
 	
 	/**
-	 * A <code>List</code> object that stores the menu items displayed to the 
+	 * This <code>Project</code> instance is used to hold all retrieved data
+	 * regarding the user-selected project, if there is one.
+	 * 
+	 */
+	
+	private Project curProject;
+	
+	/**
+	 * This <code>List</code> object that stores the menu items displayed to the 
 	 * user.
 	 * 
 	 */
@@ -37,7 +51,10 @@ public class ProjectsApp {
 	// @formatter:off
 	private List<String> operations = List.of(
 			"1) Quit this application",
-			"2) Add a new project"
+			"2) Add a new project",
+			"3) List projects",
+			"4) Select a project",
+			"5) View selected project details"
 	);
 	// @formatter:on
 	
@@ -50,8 +67,9 @@ public class ProjectsApp {
 	
 	
 	
+	// -------------------------------------------------------------------------
 	// "MAIN" METHOD:
-	
+	// -------------------------------------------------------------------------
 	
 	
 	
@@ -67,9 +85,9 @@ public class ProjectsApp {
 	}
 	
 	
-	
+	// -------------------------------------------------------------------------
 	// ALL OTHER METHODS:
-	
+	// -------------------------------------------------------------------------
 	
 	
 	/**
@@ -95,8 +113,7 @@ public class ProjectsApp {
 					// CASE 1: Quit the application
 				
 					case 1:
-						System.out.println("Exiting the Menu");
-						done = true;
+						done = exitMenu();
 						break;
 				
 					// CASE 2: Add a new project
@@ -104,11 +121,28 @@ public class ProjectsApp {
 					case 2:
 						createProject();
 						break;
+						
+					// CASE 3: Print names of all projects in the table
+						
+					case 3:
+						printProjects();
+						break;
+						
+					case 4:
+						selectProject();
+						break;
+					
+					// CASE 5: Display the contents of the curProject field.
+						
+					case 5:
+						viewSelectedProjectDetails();
+						break;
 				
 					// DEFAULT CASE: used if input isn't recognized.
 						
 					default:
 						System.out.println("\n" + selection + " is not a valid selection. Try again.");
+						
 				}
 				
 			} catch (Exception e) {
@@ -124,6 +158,40 @@ public class ProjectsApp {
 		
 	}
 	
+	private void viewSelectedProjectDetails() {
+		if (Objects.isNull(curProject)) {
+			System.out.println("\nYou currently have no project selected. Press 4 at the main menu to select a project.");
+		} else {
+			System.out.println("\nHere are the details of the currently selected project:");
+			System.out.println(curProject);
+		}
+	}
+
+
+	/**
+	 * This method sets the value of the <code>curProject</code> field based on
+	 * project data retrieved from the table. It requires the user to input a
+	 * valid projectId after printing a list of projects to the terminal using
+	 * <code>printProjects</code>.
+	 */
+	
+	private void selectProject() {
+		printProjects();
+		Integer projectId = getIntInput("Select a project from the above list by entering its ID (the number to its left)");
+		curProject = null;
+		curProject = projectService.fetchProjectById(projectId);
+		System.out.println("\nYou have selected " + curProject.getProjectName());
+		
+	}
+
+
+	private boolean exitMenu() {
+		System.out.println("\nExiting the menu.");
+		System.out.println("Goodbye!");
+		return true;
+	}
+
+
 	/**
 	 * This method creates a <code>Project</code> instance and moves the user
 	 * through populating its fields with a series of prompts.
@@ -165,18 +233,16 @@ public class ProjectsApp {
 	private Integer getValidDifficulty() {
 		Integer difficulty = getIntInput("\nEnter a difficulty from 1-5 (1 is easier, 5 is harder)");
 		
-		//Check if the difficulty input is valid input
+		// Check if the difficulty input is valid input
 		boolean difficultyIsValid = checkForValidityOfDifficultyInput(difficulty);
 		
-		//use a while loop to handle invalid input
+		// use a while loop to handle invalid input
 		while (!difficultyIsValid) {
-			
-			//re-prompt the user, set difficulty to their new input, check if it's valid again.
+			// re-prompt the user, set difficulty to their new input, check if it's valid again.
 			System.out.println("\nPlease enter a valid integer between 1 and 5 inclusive, or simply press enter if you do not wish to provide a difficulty at this time.");
 			difficulty = getIntInput("\nEnter a difficulty from 1-5 (1 is easier, 5 is harder)");
 			difficultyIsValid = checkForValidityOfDifficultyInput(difficulty);
 		}
-		
 		return difficulty;
 	}
 	
@@ -284,8 +350,27 @@ public class ProjectsApp {
 		StringBuilder operationsSB = new StringBuilder();
 		operations.forEach(line -> operationsSB.append("\n" + line));
 		System.out.println(operationsSB.toString().indent(3));
+		System.out.println(
+				Objects.isNull(curProject) 
+				? "\nThere is no project currently selected."
+				: "\nThe currently selected project is: " + curProject.getProjectName()
+		);
 	}
 	
+	private void printProjects() {
+		List<Project> projects = projectService.fetchAllProjects();
+		StringBuilder projectsSB = new StringBuilder();
+		projects.forEach(project -> 
+			projectsSB.append(
+					"\n" 
+					+ project.getProjectId() 
+					+ ": "
+					+ project.getProjectName()
+				)
+			);
+		System.out.println("\nProjects:");
+		System.out.println(projectsSB.toString().indent(3));
+	}
 	
 
 }
