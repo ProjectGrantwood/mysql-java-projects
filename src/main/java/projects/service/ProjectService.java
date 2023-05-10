@@ -5,6 +5,7 @@ import java.util.NoSuchElementException;
 
 import projects.dao.ProjectDao;
 import projects.entity.Project;
+import projects.exception.DbException;
 
 public class ProjectService {
 	
@@ -25,6 +26,14 @@ public class ProjectService {
 				+ " does not exist."
 			)
 		);
+	}
+
+	public void modifyProjectDetails(Project updatedProject) {
+		boolean success = projectDao.modifyProjectDetails(updatedProject);
+		if (!success) {
+			throw new DbException("Project with ID=" + updatedProject.getProjectId() + " does not exist.");
+		}
+		
 	}
 
 }

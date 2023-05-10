@@ -54,7 +54,8 @@ public class ProjectsApp {
 			"2) Add a new project",
 			"3) List projects",
 			"4) Select a project",
-			"5) View selected project details"
+			"5) View selected project details",
+			"6) Update project details"
 	);
 	// @formatter:on
 	
@@ -128,6 +129,8 @@ public class ProjectsApp {
 						printProjects();
 						break;
 						
+					// CASE 4: Select project based on user input
+						
 					case 4:
 						selectProject();
 						break;
@@ -136,6 +139,12 @@ public class ProjectsApp {
 						
 					case 5:
 						viewSelectedProjectDetails();
+						break;
+						
+					// CASE 6: Update selected project
+						
+					case 6:
+						updateProjectDetails();
 						break;
 				
 					// DEFAULT CASE: used if input isn't recognized.
@@ -157,6 +166,48 @@ public class ProjectsApp {
 		}
 		
 	}
+	
+	/**
+	 * 
+	 * This method 
+	 * 
+	 */
+	
+	private void updateProjectDetails() {
+		if (Objects.isNull(curProject)) {
+			System.out.println("\nYou currently have no project selected. Press 4 at the main menu to select a project.");
+		} else {
+			Project updatedProject = new Project();
+			
+			/* For each column in the project table, display the current value,
+			 * Then set it to the user input. Finally set the ID to the same
+			 * as that of the current project.
+			 */
+			
+			String projectName = getStringInput("Enter the project name [" + curProject.getProjectName() + "]");
+			updatedProject.setProjectName(Objects.isNull(projectName) ? curProject.getProjectName() : projectName);
+			BigDecimal estimatedHours = getDecimalInput("Enter the estimated hours [" + curProject.getEstimatedHours() + "]");
+			updatedProject.setEstimatedHours(Objects.isNull(estimatedHours) ? curProject.getEstimatedHours() : estimatedHours);
+			BigDecimal actualHours = getDecimalInput("Enter the actual hours [" + curProject.getActualHours() + "]");
+			updatedProject.setActualHours(Objects.isNull(actualHours) ? curProject.getActualHours() : actualHours);
+			Integer difficulty = getValidDifficulty();
+			updatedProject.setDifficulty(Objects.isNull(difficulty) ? curProject.getDifficulty() : difficulty);
+			String notes = getStringInput("Enter the project ntoes [" + curProject.getNotes() + "]");
+			updatedProject.setNotes(Objects.isNull(notes) ? curProject.getNotes() : notes);
+			updatedProject.setProjectId(curProject.getProjectId());
+			
+			projectService.modifyProjectDetails(updatedProject);
+			curProject = projectService.fetchProjectById(curProject.getProjectId());
+		}
+		
+	}
+
+	/**
+	 * This method prints the selected project to the terminal. In cases where
+	 * there is no project selected, an additional message guides the user 
+	 * toward the menu item where they can select a project.
+	 * 
+	 */
 	
 	private void viewSelectedProjectDetails() {
 		if (Objects.isNull(curProject)) {
@@ -221,12 +272,11 @@ public class ProjectsApp {
 
 	/**
 	 * This method obtains an integer value representing project difficulty from
-	 * the user, but accepts only "null" and an integer between 1-5 inclusive.
+	 * the user, but accepts only an integer between 1-5 inclusive.
 	 * Otherwise, it will re-prompt the user with a marginally more helpful 
 	 * message.
 	 * 
-	 * @return an Integer that's valid given the constraints, or 
-	 * <code>null</code>.
+	 * @return an Integer that's valid given the constraints.
 	 * 
 	 */
 	
@@ -239,7 +289,7 @@ public class ProjectsApp {
 		// use a while loop to handle invalid input
 		while (!difficultyIsValid) {
 			// re-prompt the user, set difficulty to their new input, check if it's valid again.
-			System.out.println("\nPlease enter a valid integer between 1 and 5 inclusive, or simply press enter if you do not wish to provide a difficulty at this time.");
+			System.out.println("\nPlease enter a valid integer between 1 and 5 inclusive.");
 			difficulty = getIntInput("\nEnter a difficulty from 1-5 (1 is easier, 5 is harder)");
 			difficultyIsValid = checkForValidityOfDifficultyInput(difficulty);
 		}
@@ -257,7 +307,7 @@ public class ProjectsApp {
 	 */
 
 	private boolean checkForValidityOfDifficultyInput(Integer difficulty) {
-		return Objects.isNull(difficulty) || (Integer.compare(difficulty, 1) >= 0 && Integer.compare(difficulty, 5) <= 0);
+		return (Integer.compare(difficulty, 1) >= 0 && Integer.compare(difficulty, 5) <= 0);
 	}
 
 	/**
