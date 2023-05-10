@@ -28,12 +28,20 @@ public class ProjectService {
 		);
 	}
 
-	public void modifyProjectDetails(Project updatedProject) {
+	public boolean modifyProjectDetails(Project updatedProject) {
 		boolean success = projectDao.modifyProjectDetails(updatedProject);
 		if (!success) {
 			throw new DbException("Project with ID=" + updatedProject.getProjectId() + " does not exist.");
 		}
+		return success;
 		
+	}
+
+	public void deleteProject(Integer projectId) {
+		boolean success = projectDao.deleteProject(projectId);
+		if (!success) {
+			throw new DbException("\nThere is no row associated with id " + projectId + " in the project table, delete operation unsuccessful.");
+		}
 	}
 
 }

@@ -252,6 +252,7 @@ public class ProjectDao extends DaoBase {
 				setParameter(statement, 3, updatedProject.getActualHours(), BigDecimal.class);
 				setParameter(statement, 4, updatedProject.getDifficulty(), Integer.class);
 				setParameter(statement, 5, updatedProject.getNotes(), String.class);
+				setParameter(statement, 6, updatedProject.getProjectId(), Integer.class);
 				int success = statement.executeUpdate();
 				commitTransaction(conn);
 				return success == 1;
@@ -262,6 +263,34 @@ public class ProjectDao extends DaoBase {
 			}
 			
 		} 
+		catch (SQLException e) {
+			throw new DbException(e);
+		}
+		
+	}
+
+	public boolean deleteProject(Integer projectId) {
+		// @formatter:off
+		String sql = ""
+				+ "DELETE FROM " + ProjectDao.PROJECT_TABLE
+				+ " WHERE project_id = ?";
+		// @formatter:on
+		
+		try (Connection conn = DbConnection.getConnection()) {
+			
+			startTransaction(conn);
+			
+			try (PreparedStatement statement = conn.prepareStatement(sql)) {
+				setParameter(statement, 1, projectId, Integer.class);
+				int success = statement.executeUpdate();
+				commitTransaction(conn);
+				return success == 1;
+			}
+			catch (Exception e) {
+				rollbackTransaction(conn);
+				throw new DbException(e);
+			}
+		}
 		catch (SQLException e) {
 			throw new DbException(e);
 		}

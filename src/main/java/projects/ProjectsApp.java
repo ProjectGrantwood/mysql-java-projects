@@ -50,12 +50,13 @@ public class ProjectsApp {
 	
 	// @formatter:off
 	private List<String> operations = List.of(
-			"1) Quit this application",
-			"2) Add a new project",
-			"3) List projects",
-			"4) Select a project",
-			"5) View selected project details",
-			"6) Update project details"
+			"1) Add a new project",
+			"2) List projects",
+			"3) Select a project",
+			"4) View selected project details",
+			"5) Update project details",
+			"6) Delete a project",
+			"7) Quit this application"
 	);
 	// @formatter:on
 	
@@ -110,41 +111,45 @@ public class ProjectsApp {
 				int selection = getUserSelection();
 				
 				switch (selection) {
-				
-					// CASE 1: Quit the application
-				
-					case 1:
-						done = exitMenu();
-						break;
-				
-					// CASE 2: Add a new project
 						
-					case 2:
+					// CASE 1: Add a new project
+						
+					case 1:
 						createProject();
 						break;
 						
-					// CASE 3: Print names of all projects in the table
+					// CASE 2: Print names of all projects in the table
 						
-					case 3:
+					case 2:
 						printProjects();
 						break;
 						
-					// CASE 4: Select project based on user input
+					// CASE 3: Select project based on user input
 						
-					case 4:
+					case 3:
 						selectProject();
 						break;
 					
-					// CASE 5: Display the contents of the curProject field.
+					// CASE 4: Display the contents of the curProject field.
 						
-					case 5:
+					case 4:
 						viewSelectedProjectDetails();
 						break;
 						
-					// CASE 6: Update selected project
+					// CASE 5: Update selected project
+						
+					case 5:
+						updateProjectDetails();
+						break;
+						
+					// CASE 7: delete a project
 						
 					case 6:
-						updateProjectDetails();
+						deleteProject();
+						break;
+						
+					case 7:
+						done = exitMenu();
 						break;
 				
 					// DEFAULT CASE: used if input isn't recognized.
@@ -167,6 +172,22 @@ public class ProjectsApp {
 		
 	}
 	
+	private void deleteProject() {
+		printProjects();
+		Integer projectId = getIntInput("Please select the number ID of the project you wish to delete", false);
+		String confirm = getStringInput("Are you sure you wish to delete project " + projectId + "? Type [y] to confirm, [n] to abort");
+		if (confirm.equalsIgnoreCase("y")) {
+			projectService.deleteProject(projectId);
+			System.out.println("Project " + projectId + " was successfully deleted.");
+			curProject = Objects.nonNull(curProject) ? null : curProject;
+		} else {
+			System.out.println("\nAborting project deletion.");
+		}
+		
+		
+	}
+
+
 	/**
 	 * 
 	 * This method 
@@ -186,18 +207,23 @@ public class ProjectsApp {
 			
 			String projectName = getStringInput("Enter the project name [" + curProject.getProjectName() + "]");
 			updatedProject.setProjectName(Objects.isNull(projectName) ? curProject.getProjectName() : projectName);
-			BigDecimal estimatedHours = getDecimalInput("Enter the estimated hours [" + curProject.getEstimatedHours() + "]");
+			
+			
+			BigDecimal estimatedHours = getDecimalInput("Enter the estimated hours [" + curProject.getEstimatedHours() + "]", true);
 			updatedProject.setEstimatedHours(Objects.isNull(estimatedHours) ? curProject.getEstimatedHours() : estimatedHours);
-			BigDecimal actualHours = getDecimalInput("Enter the actual hours [" + curProject.getActualHours() + "]");
+			BigDecimal actualHours = getDecimalInput("Enter the actual hours [" + curProject.getActualHours() + "]", true);
 			updatedProject.setActualHours(Objects.isNull(actualHours) ? curProject.getActualHours() : actualHours);
-			Integer difficulty = getValidDifficulty();
+			Integer difficulty = getValidDifficulty(true);
 			updatedProject.setDifficulty(Objects.isNull(difficulty) ? curProject.getDifficulty() : difficulty);
-			String notes = getStringInput("Enter the project ntoes [" + curProject.getNotes() + "]");
+			String notes = getStringInput("Enter the project notes [" + curProject.getNotes() + "]");
 			updatedProject.setNotes(Objects.isNull(notes) ? curProject.getNotes() : notes);
 			updatedProject.setProjectId(curProject.getProjectId());
 			
-			projectService.modifyProjectDetails(updatedProject);
-			curProject = projectService.fetchProjectById(curProject.getProjectId());
+			boolean success = projectService.modifyProjectDetails(updatedProject);
+			if (success) {
+				System.out.println("Project with ID=" + updatedProject.getProjectId() + " successfully updated.");
+				curProject = projectService.fetchProjectById(curProject.getProjectId());
+			}
 		}
 		
 	}
@@ -228,7 +254,7 @@ public class ProjectsApp {
 	
 	private void selectProject() {
 		printProjects();
-		Integer projectId = getIntInput("Select a project from the above list by entering its ID (the number to its left)");
+		Integer projectId = getIntInput("Select a project from the above list by entering its ID (the number to its left)", false);
 		curProject = null;
 		curProject = projectService.fetchProjectById(projectId);
 		System.out.println("\nYou have selected " + curProject.getProjectName());
@@ -252,9 +278,9 @@ public class ProjectsApp {
 	private void createProject() {
 		
 		String projectName = getStringInput("\nEnter the project name");
-		BigDecimal estimatedHours = getDecimalInput("\nEnter the estimated hours");
-		BigDecimal actualHours = getDecimalInput("\nEnter the actual hours");
-		Integer difficulty = getValidDifficulty();
+		BigDecimal estimatedHours = getDecimalInput("\nEnter the estimated hours", false);
+		BigDecimal actualHours = getDecimalInput("\nEnter the actual hours", false);
+		Integer difficulty = getValidDifficulty(false);
 		String notes = getStringInput("\nEnter the project notes");
 		
 		Project project = new Project();
@@ -276,22 +302,25 @@ public class ProjectsApp {
 	 * Otherwise, it will re-prompt the user with a marginally more helpful 
 	 * message.
 	 * 
+	 * @param allowNull To be passed down to <code>getIntInput()</code>, as well
+	 * 					as the validity check.
+	 * 
 	 * @return an Integer that's valid given the constraints.
 	 * 
 	 */
 	
-	private Integer getValidDifficulty() {
-		Integer difficulty = getIntInput("\nEnter a difficulty from 1-5 (1 is easier, 5 is harder)");
+	private Integer getValidDifficulty(boolean allowNull) {
+		Integer difficulty = getIntInput("\nEnter a difficulty from 1-5 (1 is easier, 5 is harder)", allowNull);
 		
 		// Check if the difficulty input is valid input
-		boolean difficultyIsValid = checkForValidityOfDifficultyInput(difficulty);
+		boolean difficultyIsValid = checkForValidityOfDifficultyInput(difficulty, allowNull);
 		
 		// use a while loop to handle invalid input
 		while (!difficultyIsValid) {
 			// re-prompt the user, set difficulty to their new input, check if it's valid again.
 			System.out.println("\nPlease enter a valid integer between 1 and 5 inclusive.");
-			difficulty = getIntInput("\nEnter a difficulty from 1-5 (1 is easier, 5 is harder)");
-			difficultyIsValid = checkForValidityOfDifficultyInput(difficulty);
+			difficulty = getIntInput("\nEnter a difficulty from 1-5 (1 is easier, 5 is harder)", allowNull);
+			difficultyIsValid = checkForValidityOfDifficultyInput(difficulty, allowNull);
 		}
 		return difficulty;
 	}
@@ -301,13 +330,14 @@ public class ProjectsApp {
 	 * than once (for readability).
 	 * 
 	 * @param difficulty The user input value we're testing.
+	 * 		  allowNull  accept null input as valid.
 	 * 
 	 * @return true if input is null OR between 1 and 5 inclusive, otherwise 
 	 * false.
 	 */
 
-	private boolean checkForValidityOfDifficultyInput(Integer difficulty) {
-		return (Integer.compare(difficulty, 1) >= 0 && Integer.compare(difficulty, 5) <= 0);
+	private boolean checkForValidityOfDifficultyInput(Integer difficulty, boolean allowNull) {
+		return allowNull || (Integer.compare(difficulty, 1) >= 0 && Integer.compare(difficulty, 5) <= 0);
 	}
 
 	/**
@@ -321,7 +351,7 @@ public class ProjectsApp {
 
 	private int getUserSelection() {
 		printOperations();
-		Integer input = getIntInput("Enter the number of one of the above menu items to continue");
+		Integer input = getIntInput("Enter the number of one of the above menu items to continue", false);
 		return Objects.isNull(input) ? -1 : input;
 	}
 	
@@ -333,23 +363,30 @@ public class ProjectsApp {
 	 * <code>projects.exception.DbException<code>.
 	 * 
 	 * @param prompt For display to the user, passed to getStringInput()
+	 * @param allowNull If the input can be blank, this boolean will prevent a 
+	 * 					<code>NullPointerException</code> from being thrown.
 	 * @return value of prompt, or <code>null</code>.
 	 * 
 	 */
 
-	private Integer getIntInput(String prompt) {
+	private Integer getIntInput(String prompt, boolean allowNull) {
 		String input = getStringInput(prompt);
 		try {
 			return Objects.isNull(input) ? null : Integer.valueOf(input);
 		} catch (NumberFormatException e) {
 			throw new DbException(input + " is not a valid number.");
+		} catch (NullPointerException e) {
+			if (allowNull) {
+				return null;
+			}
+			throw new DbException("Please enter a number.");
 		}
 	}
 
 	/**
 	 * This method prints the given prompt to the terminal, then obtains the
 	 * user input by reading the terminal's next line. It also trims the input.
-	 * It also handles cases where no input is given
+	 * It also handles cases where no input is given.
 	 * 
 	 * @param prompt The prompt to print.
 	 * @return The trimmed input, or <code>null</code>.
@@ -363,28 +400,29 @@ public class ProjectsApp {
 	}
 	
 	/**
-	 * This method prints the contents of the private field 
-	 * <code>operations</code> to the terminal using human-readable formatting. 
-	 * Additionally, it prepends a message prompting the user to pick from those 
-	 * selections.
-	 * 
-	 */
-	
-	/**
 	 * This method reads the input provided by the user and converts it to a
 	 * BigDecimal, if possible.
 	 * 
 	 * @param prompt The prompt to show the user before reading their input.
+	 * @param allowNull When blank input is accepted, this boolean prevents a
+	 * 					<code>NullPointerException</code> from being thrown.
 	 * @return BigDecimal
 	 * 
 	 */
 
-	private BigDecimal getDecimalInput(String prompt) {
+	private BigDecimal getDecimalInput(String prompt, boolean allowNull) {
 		String input = getStringInput(prompt);
 		try {
 			return new BigDecimal(input).setScale(2);
-		} catch (NumberFormatException e) {
-			throw new DbException(input + " is not a valid decimal number.");
+		} 
+		catch (NumberFormatException e) {
+			throw new DbException("Please enter a valid decimal number.");
+		}
+		catch (NullPointerException e) {
+			if (allowNull) {
+				return null;
+			}
+			throw new DbException("You must provide an input here.");
 		}
 	}
 	
@@ -406,6 +444,14 @@ public class ProjectsApp {
 				: "\nThe currently selected project is: " + curProject.getProjectName()
 		);
 	}
+	
+	/**
+	 * This method prints the contents of the private field 
+	 * <code>operations</code> to the terminal using human-readable formatting. 
+	 * Additionally, it prepends a message prompting the user to pick from those 
+	 * selections.
+	 * 
+	 */
 	
 	private void printProjects() {
 		List<Project> projects = projectService.fetchAllProjects();
