@@ -113,7 +113,7 @@ public class ProjectDao extends DaoBase {
 			
 			try {
 				
-				Project project= null;
+				Project project = null;
 				
 				try (PreparedStatement statement = conn.prepareStatement(sql)) {
 					
