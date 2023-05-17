@@ -27,24 +27,21 @@ public class ProjectsApp {
 	// -------------------------------------------------------------------------
 	
 	/**
-	 * This <code>ProjectService</code> instance is used throughout the class to
-	 * access the service layer of the application.
+	 * Used to access the service layer of the application.
 	 * 
 	 */
 	
 	private ProjectService projectService = new ProjectService();
 	
 	/**
-	 * This <code>Project</code> instance is used to hold all retrieved data
-	 * regarding the user-selected project, if there is one.
+	 * Holds all retrieved data regarding the user-selected project.
 	 * 
 	 */
 	
 	private Project curProject;
 	
 	/**
-	 * This <code>List</code> object that stores the menu items displayed to the 
-	 * user.
+	 * Contains menu items displayed to the user.
 	 * 
 	 */
 	
@@ -61,7 +58,7 @@ public class ProjectsApp {
 	// @formatter:on
 	
 	/**
-	 * A <code>Scanner</code> object that will read user input to the terminal.
+	 * Used to read user input to the terminal.
 	 * 
 	 */
 	
@@ -76,7 +73,7 @@ public class ProjectsApp {
 	
 	
 	/**
-	 * This method is the entry point for the application.
+	 * The entry-point for the menu-driven application.
 	 * 
 	 * @param args included for compatibility, unused.
 	 * 
@@ -93,10 +90,9 @@ public class ProjectsApp {
 	
 	
 	/**
-	 * This method allows the user to make selections. It's not SOLID because
-	 * it also attempts to both handle errors and monitor if the application
-	 * should continue running, and in actual use cases, it would be better to
-	 * put these functionalities in separate classes.
+	 * Manages user selections, as well as monitoring if the menu-driven
+	 * application is still running. Prints any <code>Exception</code> to the
+	 * terminal with some additional text.
 	 * 
 	 */
 	
@@ -149,7 +145,9 @@ public class ProjectsApp {
 						break;
 						
 					case 7:
-						done = exitMenu();
+						System.out.println("\nExiting the menu.");
+						System.out.println("Goodbye!");
+						done = true;
 						break;
 				
 					// DEFAULT CASE: used if input isn't recognized.
@@ -172,6 +170,14 @@ public class ProjectsApp {
 		
 	}
 	
+	/**
+	 * Allows the user to select a project to delete. Includes an additional
+	 * prompt for them to verify that they want to delete the project. If the
+	 * project to be deleted has the same <code>projectId</code> as the 
+	 * <code>curProject</code> class variable, sets <code>curProject</code> to
+	 * <code> null </code>.
+	 */
+	
 	private void deleteProject() {
 		printProjects();
 		Integer projectId = getIntInput("Please select the number ID of the project you wish to delete", false);
@@ -190,7 +196,17 @@ public class ProjectsApp {
 
 	/**
 	 * 
-	 * This method 
+	 * Guides the user through each column in the <code>curProject</code> class
+	 * variable, allowing them to input new
+	 * values for each. Does so by creating a new <code>Project</code> instance
+	 * and assigning it either the updated values, or copies them from the
+	 * <code>curProject</code> object if the user does not provide a new value.
+	 * 
+	 * If the transaction with the SQL database is successful, fetches the
+	 * the project row from the database with 
+	 * <code>ProjectService.fetchProjectbyId</code>, which populates a new
+	 * <code>Project</code> object with that data, and assigns it to the
+	 * <code>curProject</code> class variable.
 	 * 
 	 */
 	
@@ -229,7 +245,8 @@ public class ProjectsApp {
 	}
 
 	/**
-	 * This method prints the selected project to the terminal. In cases where
+	 * Prints the selected project to the terminal. The selected project is held
+	 * in the <code>curProject</code> class variable. In cases where
 	 * there is no project selected, an additional message guides the user 
 	 * toward the menu item where they can select a project.
 	 * 
@@ -246,10 +263,10 @@ public class ProjectsApp {
 
 
 	/**
-	 * This method sets the value of the <code>curProject</code> field based on
-	 * project data retrieved from the table. It requires the user to input a
-	 * valid projectId after printing a list of projects to the terminal using
-	 * <code>printProjects</code>.
+	 * Sets the value of the <code>curProject</code> class variable based on
+	 * project data retrieved from the table. Requires the user to input a
+	 * valid <code>projectId</code> after printing a list of projects to the by
+	 * calling <code>printProjects</code>.
 	 */
 	
 	private void selectProject() {
@@ -261,16 +278,8 @@ public class ProjectsApp {
 		
 	}
 
-
-	private boolean exitMenu() {
-		System.out.println("\nExiting the menu.");
-		System.out.println("Goodbye!");
-		return true;
-	}
-
-
 	/**
-	 * This method creates a <code>Project</code> instance and moves the user
+	 * Creates a <code>Project</code> instance and moves the user
 	 * through populating its fields with a series of prompts.
 	 * 
 	 */
@@ -297,15 +306,15 @@ public class ProjectsApp {
 	}
 
 	/**
-	 * This method obtains an integer value representing project difficulty from
-	 * the user, but accepts only an integer between 1-5 inclusive.
-	 * Otherwise, it will re-prompt the user with a marginally more helpful 
-	 * message.
+	 * Obtains an <code>Integer</code> value representing project difficulty 
+	 * from the user. If the value is not betweeen 1-5 inclusive,
+	 * re-prompts the user with a marginally more helpful message.
 	 * 
 	 * @param allowNull To be passed down to <code>getIntInput()</code>, as well
-	 * 					as the validity check.
+	 * 					as the validity check. Specifies if <code>null</code>
+	 * 					input is allowed.
 	 * 
-	 * @return an Integer that's valid given the constraints.
+	 * @return an <code>Integer</code> that's valid given the constraints.
 	 * 
 	 */
 	
@@ -326,26 +335,27 @@ public class ProjectsApp {
 	}
 	
 	/**
-	 * This method wraps a boolean expression that I didn't want to display more
-	 * than once (for readability).
+	 * Tests that an <code>Integer</code> is between 1 and 5 inclusive, or
+	 * <code>null</code>, if the appropriate parameter is set to true.
 	 * 
-	 * @param difficulty The user input value we're testing.
+	 * @param difficulty The <code>Integer</code> being tested.
 	 * 		  allowNull  accept null input as valid.
 	 * 
-	 * @return true if input is null OR between 1 and 5 inclusive, otherwise 
-	 * false.
+	 * @return <code>true</code> if input is <code>null</code> (if
+	 * <code>allowNull</code> is true) OR between 1 and 5 inclusive, 
+	 * otherwise false.
 	 */
 
 	private boolean checkForValidityOfDifficultyInput(Integer difficulty, boolean allowNull) {
-		return allowNull || (Integer.compare(difficulty, 1) >= 0 && Integer.compare(difficulty, 5) <= 0);
+		return (allowNull ? Objects.isNull(difficulty) : false) || (Integer.compare(difficulty, 1) >= 0 && Integer.compare(difficulty, 5) <= 0);
 	}
 
 	/**
-	 * This method prints the available operations, obtains the user selection,
+	 * Prints the available operations, obtains the user selection,
 	 * and handles cases where the user instructs the program to continue
-	 * without providing an input. It is very much not SOLID.
+	 * without providing an input.
 	 * 
-	 * @return The user-provided input, or -1 if no input is given.
+	 * @return The user-provided input, or <code>-1</code> if no input is given.
 	 * 
 	 */
 
@@ -356,16 +366,16 @@ public class ProjectsApp {
 	}
 	
 	/**
-	 * This method attempts to convert user input (obtained by
+	 * Attempts to convert user input (obtained by
 	 * <code>getStringInput</code>) to an <code>Integer</code> and handles 
-	 * cases where the input is <code>null</code>. It also catches any
-	 * <code>NumerFormatException</code> and re-throws it as a 
-	 * <code>projects.exception.DbException<code>.
+	 * cases where the input is <code>null</code>. 
 	 * 
-	 * @param prompt For display to the user, passed to getStringInput()
-	 * @param allowNull If the input can be blank, this boolean will prevent a 
-	 * 					<code>NullPointerException</code> from being thrown.
+	 * @param prompt For display to the user, passed to <code>getStringInput</code>
+	 * @param allowNull If blank input is valid, this <code>boolean</code> 
+	 * 					prevents a <code>NullPointerException</code> from being 
+	 * 					thrown.
 	 * @return value of prompt, or <code>null</code>.
+	 * @throws <code>DbException</code>.
 	 * 
 	 */
 
@@ -384,9 +394,9 @@ public class ProjectsApp {
 	}
 
 	/**
-	 * This method prints the given prompt to the terminal, then obtains the
-	 * user input by reading the terminal's next line. It also trims the input.
-	 * It also handles cases where no input is given.
+	 * Prints the given prompt to the terminal, then obtains the
+	 * user input by reading the terminal's next line. Trims the input, and
+	 * handles cases where no input is given.
 	 * 
 	 * @param prompt The prompt to print.
 	 * @return The trimmed input, or <code>null</code>.
@@ -400,13 +410,12 @@ public class ProjectsApp {
 	}
 	
 	/**
-	 * This method reads the input provided by the user and converts it to a
-	 * BigDecimal, if possible.
+	 * Tries to convert user input to a <code>BigDecimal</code>.
 	 * 
-	 * @param prompt The prompt to show the user before reading their input.
-	 * @param allowNull When blank input is accepted, this boolean prevents a
+	 * @param prompt Shown to the user before obtaining the input.
+	 * @param allowNull If blank input is valid, this boolean prevents a
 	 * 					<code>NullPointerException</code> from being thrown.
-	 * @return BigDecimal
+	 * @return the user input as a BigDecimal.
 	 * 
 	 */
 
@@ -427,9 +436,8 @@ public class ProjectsApp {
 	}
 	
 	/**
-	 * This method prints the contents of the operations <code>List</code>
-	 * field defined at the top of this class using a 
-	 * <code>StringBuilder</code> instance. It also performs some formatting.
+	 * Prints the contents of the <code>operations</code> field using a 
+	 * <code>StringBuilder</code> instance. Performs some formatting.
 	 * 
 	 */
 
@@ -446,10 +454,9 @@ public class ProjectsApp {
 	}
 	
 	/**
-	 * This method prints the contents of the private field 
-	 * <code>operations</code> to the terminal using human-readable formatting. 
-	 * Additionally, it prepends a message prompting the user to pick from those 
-	 * selections.
+	 * Prints the contents of the <code>operations</code> field to the terminal 
+	 * using human-readable formatting. Additionally prepends a message 
+	 * prompting the user to pick from those selections.
 	 * 
 	 */
 	
