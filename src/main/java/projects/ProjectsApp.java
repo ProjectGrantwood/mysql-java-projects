@@ -212,7 +212,7 @@ public class ProjectsApp {
 	
 	private void updateProjectDetails() {
 		if (Objects.isNull(curProject)) {
-			System.out.println("\nYou currently have no project selected. Press 4 at the main menu to select a project.");
+			System.out.println("\nYou currently have no project selected. Press 3 at the main menu to select a project.");
 		} else {
 			Project updatedProject = new Project();
 			
